@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unified Health ID Card</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f3f9f8;
+    color: #203a40;
+}
+
+header {
+    background: #ffffff;
+    padding: 20px 7%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    border-bottom: 1px solid #dce9e7;
+}
+
+.logo {
+    color: #147d78;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 22px;
+}
+
+nav a {
+    color: #34575a;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+nav a:hover {
+    color: #147d78;
+}
+
+.hero {
+    padding: 75px 8%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 40px;
+    flex-wrap: wrap;
+    background: linear-gradient(120deg, #e6f5f1, #f9fbfa);
+}
+
+.hero-text {
+    flex: 1;
+    min-width: 260px;
+}
+
+.tag {
+    display: inline-block;
+    color: #147d78;
+    background: #d9eee8;
+    padding: 8px 13px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.hero h1 {
+    font-size: clamp(32px, 5vw, 50px);
+    line-height: 1.2;
+    margin-bottom: 20px;
+}
+
+.hero h1 span {
+    color: #147d78;
+}
+
+.hero p {
+    color: #63787b;
+    line-height: 1.8;
+    max-width: 520px;
+    margin-bottom: 25px;
+}
+
+.primary-btn {
+    display: inline-block;
+    background: #147d78;
+    color: white;
+    padding: 14px 22px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.primary-btn:hover {
+    background: #0c625e;
+}
+
+.hero-art {
+    flex: 1;
+    min-width: 260px;
+    min-height: 280px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.health-card {
+    width: min(100%, 340px);
+    background: white;
+    padding: 28px;
+    border-radius: 20px;
+    border: 1px solid #d7e9e4;
+    box-shadow: 0 15px 40px #164a4012;
+    transform: rotate(2deg);
+}
+
+.health-icon {
+    width: 65px;
+    height: 65px;
+    border-radius: 16px;
+    background: #e1f3ee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #147d78;
+    font-size: 35px;
+    margin-bottom: 22px;
+}
+
+.health-card h3 {
+    color: #147d78;
+    margin-bottom: 8px;
+}
+
+.health-card p {
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.card-line {
+    height: 9px;
+    background: #eaf1ef;
+    border-radius: 10px;
+    margin-top: 12px;
+}
+
+.card-line.short {
+    width: 60%;
+}
+
+section.features {
+    padding: 60px 7%;
+}
+
+.section-heading {
+    text-align: center;
+    margin-bottom: 35px;
+}
+
+.section-heading h2 {
+    font-size: 29px;
+    margin-bottom: 12px;
+}
+
+.section-heading p {
+    color: #63787b;
+    line-height: 1.6;
+}
+
+.portal-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 22px;
+}
+
+.portal-card {
+    background: white;
+    padding: 27px;
+    border: 1px solid #dce9e7;
+    border-radius: 14px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.portal-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px #163c3c10;
+}
+
+.portal-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    background: #e3f3ef;
+    color: #147d78;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.portal-card h3 {
+    margin-bottom: 12px;
+}
+
+.portal-card p {
+    color: #63787b;
+    font-size: 14px;
+    line-height: 1.7;
+    margin-bottom: 20px;
+}
+
+.portal-card a {
+    color: #147d78;
+    font-weight: bold;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+.register-banner {
+    margin: 0 7% 60px;
+    background: #147d78;
+    color: white;
+    border-radius: 16px;
+    padding: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.register-banner p {
+    margin-top: 10px;
+    line-height: 1.6;
+    color: #e0f2ed;
+}
+
+.register-banner a {
+    background: #e6c77a;
+    color: #263d3b;
+    padding: 13px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+footer {
+    text-align: center;
+    padding: 25px;
+    color: #63787b;
+    background: white;
+    border-top: 1px solid #dce9e7;
+    font-size: 13px;
+}
+
+@media (max-width: 600px) {
+    header {
+        padding: 20px;
+    }
+
+    nav {
+        gap: 15px;
+    }
+
+    .hero {
+        padding: 45px 22px;
+    }
+
+    section.features {
+        padding: 45px 22px;
+    }
+
+    .register-banner {
+        margin: 0 22px 40px;
+        padding: 25px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">Unified Health ID</div>
+
+    <nav>
+        <a href="home.html">Home</a>
+        <a href="doctor.html">Doctor</a>
+        <a href="patient.html">Patient</a>
+        <a href="pharmacy.html">Pharmacy</a>
+        <a href="register.html">Register</a>
+    </nav>
+</header>
+
+<main>
+    <section class="hero">
+        <div class="hero-text">
+            <div class="tag">SMARTER HEALTHCARE</div>
+
+            <h1>Your Health Records,<br>
+            <span>Connected in One Place.</span></h1>
+
+            <p>
+                A unified digital health record system designed to make
+                patient information, prescriptions, and medical reports
+                easier to access through one platform.
+            </p>
+
+            <a class="primary-btn" href="register.html">
+                Register a Patient →
+            </a>
+        </div>
+
+        <div class="hero-art">
+            <div class="health-card">
+                <div class="health-icon">✚</div>
+                <h3>Unified Health ID</h3>
+                <p>One identity. Connected health records.</p>
+                <div class="card-line"></div>
+                <div class="card-line"></div>
+                <div class="card-line short"></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="section-heading">
+            <h2>Explore Our Portals</h2>
+            <p>Choose the portal that matches your role.</p>
+        </div>
+
+        <div class="portal-grid">
+            <div class="portal-card">
+                <div class="portal-icon">⚕</div>
+                <h3>Doctor Portal</h3>
+                <p>
+                    Verify doctor access, find registered patients,
+                    and add digital prescriptions.
+                </p>
+                <a href="doctor.html">Open Doctor Portal →</a>
+            </div>
+
+            <div class="portal-card">
+                <div class="portal-icon">♡</div>
+                <h3>Patient Portal</h3>
+                <p>
+                    View saved prescriptions and available lab reports
+                    using your patient ID.
+                </p>
+                <a href="patient.html">Open Patient Portal →</a>
+            </div>
+
+            <div class="portal-card">
+                <div class="portal-icon">✚</div>
+                <h3>Pharmacy Portal</h3>
+                <p>
+                    A dedicated portal for pharmacy verification
+                    and patient prescription access.
+                </p>
+                <a href="pharmacy.html">Open Pharmacy Portal →</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="register-banner">
+        <div>
+            <h2>New Patient?</h2>
+            <p>Register to receive an automatically generated five-digit Health ID.</p>
+        </div>
+
+        <a href="register.html">Register Now →</a>
+    </section>
+</main>
+
+</body>
+</html>

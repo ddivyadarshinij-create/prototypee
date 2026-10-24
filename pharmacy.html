@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pharmacy Portal | Unified Health ID</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f2f9f8;
+    color: #203a40;
+}
+
+header {
+    background: white;
+    padding: 20px 7%;
+    border-bottom: 1px solid #dce9e7;
+}
+
+header h2 {
+    color: #147d78;
+    font-size: 22px;
+}
+
+nav {
+    background: white;
+    padding: 0 7% 18px;
+    display: flex;
+    gap: 22px;
+    flex-wrap: wrap;
+}
+
+nav a {
+    color: #34575a;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+nav a:hover {
+    color: #147d78;
+}
+
+main {
+    max-width: 760px;
+    margin: 40px auto;
+    padding: 18px;
+}
+
+.back-link {
+    display: inline-block;
+    margin-bottom: 15px;
+    color: #147d78;
+    font-weight: bold;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+.card {
+    background: white;
+    padding: 28px;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px #163c3c10;
+    margin-bottom: 22px;
+}
+
+h1 {
+    font-size: 27px;
+    margin-bottom: 12px;
+}
+
+h2 {
+    font-size: 20px;
+    margin-bottom: 15px;
+}
+
+p {
+    color: #63787b;
+    line-height: 1.7;
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    font-weight: bold;
+    font-size: 14px;
+    margin: 17px 0 8px;
+}
+
+input {
+    width: 100%;
+    padding: 13px;
+    border: 1px solid #cbdcda;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+button {
+    width: 100%;
+    padding: 14px;
+    margin-top: 18px;
+    border: none;
+    border-radius: 8px;
+    background: #147d78;
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #0c625e;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.message {
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+.patient-details {
+    background: #eaf6f3;
+    border-radius: 9px;
+    padding: 16px;
+    line-height: 1.9;
+    margin-bottom: 20px;
+    overflow-wrap: anywhere;
+}
+
+@media(max-width: 600px) {
+    header {
+        padding: 20px;
+    }
+
+    nav {
+        padding: 0 20px 18px;
+    }
+
+    .card {
+        padding: 20px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h2>Unified Health ID</h2>
+</header>
+
+<nav>
+    <a href="home.html">Home</a>
+    <a href="doctor.html">Doctor</a>
+    <a href="patient.html">Patient</a>
+    <a href="pharmacy.html">Pharmacy</a>
+    <a href="register.html">Register</a>
+</nav>
+
+<main>
+
+    <a class="back-link" href="home.html">← Back to Home</a>
+
+    <!-- STEP 1: PHARMACY VERIFICATION -->
+    <section class="card" id="pharmacySection">
+        <h1>Pharmacy Verification</h1>
+        <p>Enter your pharmacy ID number to continue.</p>
+
+        <form id="pharmacyForm">
+            <label for="pharmacyId">Pharmacy ID Number</label>
+            <input
+                type="text"
+                id="pharmacyId"
+                placeholder="Enter pharmacy ID"
+                required
+            >
+
+            <button type="submit">Verify Pharmacy</button>
+            <p class="message" id="pharmacyMessage" role="status"></p>
+        </form>
+    </section>
+
+    <!-- STEP 2: PATIENT ID AND PHONE NUMBER -->
+    <section class="card hidden" id="patientSection">
+        <h1>Find Patient Prescription</h1>
+        <p>
+            Enter the patient's five-digit ID and the phone number
+            saved during registration. For a child, this can be a
+            parent's phone number.
+        </p>
+
+        <form id="patientForm">
+            <label for="patientId">Patient ID Number</label>
+            <input
+                type="text"
+                id="patientId"
+                inputmode="numeric"
+                maxlength="5"
+                placeholder="Enter five-digit patient ID"
+                required
+            >
+
+            <label for="patientPhone">Registered Phone Number</label>
+            <input
+                type="tel"
+                id="patientPhone"
+                inputmode="numeric"
+                placeholder="Enter patient's or parent's phone number"
+                required
+            >
+
+            <button type="submit">View Their Prescription</button>
+            <p class="message" id="patientMessage" role="status"></p>
+        </form>
+    </section>
+
+    <!-- STEP 3: SHOW THE MATCHING PATIENT'S PRESCRIPTIONS -->
+    <section class="card hidden" id="prescriptionSection">
+        <h1>Patient Prescription</h1>
+
+        <div id="patientDetails" class="patient-details"></div>
+
+        <h2>Prescriptions</h2>
+        <div id="prescriptionList"></div>
+
+        <button type="button" id="searchAnother">
+            Search Another Patient
+        </button>
+
+        <button type="button" id="pharmacyLogout"
+            style="background:#65797b">
+            Log Out
+        </button>
+    </section>
+
+</main>
+
+<script src="data.js"></script>
+<script>
+const DEMO_PHARMACY_ID = "PHARM001";
+
+// STEP 1: Pharmacy check
+document.getElementById("pharmacyForm").addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    const entered = document.getElementById("pharmacyId").value.trim();
+    const msg = document.getElementById("pharmacyMessage");
+
+    if (entered !== DEMO_PHARMACY_ID) {
+        msg.textContent = "Pharmacy ID not recognised. Please check and try again.";
+        return;
+    }
+
+    msg.textContent = "";
+    document.getElementById("pharmacySection").classList.add("hidden");
+    document.getElementById("patientSection").classList.remove("hidden");
+});
+
+// STEP 2: Patient check, then show prescription
+document.getElementById("patientForm").addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    const msg = document.getElementById("patientMessage");
+
+    try {
+        const id = document.getElementById("patientId").value.trim();
+        const phone = document.getElementById("patientPhone").value.replace(/\D/g, "").slice(-10);
+
+        if (!/^[0-9]{5}$/.test(id)) {
+            msg.textContent = "Patient ID must contain exactly five digits.";
+            return;
+        }
+
+        const db = loadDB();
+        const patient = db.patients[id];
+        const saved = patient ? String(patient.contact).replace(/\D/g, "").slice(-10) : "";
+
+        if (!patient || !phone || saved !== phone) {
+            msg.textContent = "Patient ID or registered phone number is incorrect.";
+            return;
+        }
+
+        document.getElementById("patientDetails").innerHTML =
+            "<strong>Patient Name:</strong> " + escapeHTML(patient.fullName) + "<br>" +
+            "<strong>Patient ID:</strong> " + escapeHTML(patient.id) + "<br>" +
+            "<strong>Age:</strong> " + escapeHTML(patient.age) + "<br>" +
+            "<strong>Blood Group:</strong> " + escapeHTML(patient.bloodGroup);
+
+        const list = Array.isArray(patient.prescriptions) ? patient.prescriptions : [];
+        document.getElementById("prescriptionList").innerHTML = list.length
+            ? list.map(function(p, i) { return prescriptionHTML(p, patient, i); }).join("")
+            : "<p>No prescription has been saved for this patient yet.</p>";
+
+        msg.textContent = "";
+        document.getElementById("patientSection").classList.add("hidden");
+        document.getElementById("prescriptionSection").classList.remove("hidden");
+        window.scrollTo(0, 0);
+
+    } catch (error) {
+        msg.textContent = "Error: " + error.message;
+    }
+});
+
+// Search another patient
+document.getElementById("searchAnother").addEventListener("click", function() {
+    document.getElementById("prescriptionSection").classList.add("hidden");
+    document.getElementById("patientSection").classList.remove("hidden");
+    document.getElementById("patientForm").reset();
+    document.getElementById("patientMessage").textContent = "";
+});
+
+// Log out
+document.getElementById("pharmacyLogout").addEventListener("click", function() {
+    document.getElementById("prescriptionSection").classList.add("hidden");
+    document.getElementById("patientSection").classList.add("hidden");
+    document.getElementById("pharmacySection").classList.remove("hidden");
+
+    document.getElementById("pharmacyForm").reset();
+    document.getElementById("patientForm").reset();
+
+    document.getElementById("pharmacyMessage").textContent = "";
+    document.getElementById("patientMessage").textContent = "";
+});
+</script>
+
+</body>
+</html>

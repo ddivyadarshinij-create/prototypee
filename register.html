@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Patient Registration | Unified Health ID</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f2f9f8;color:#203a40}
+header{background:#fff;padding:20px 7%;border-bottom:1px solid #dce9e7}
+header h2{margin:0;color:#147d78}
+main{max-width:760px;margin:35px auto;padding:25px}
+.back-link{display:inline-block;margin-bottom:15px;color:#147d78;font-weight:bold;font-size:14px;text-decoration:none}
+.back-link:hover{text-decoration:underline}
+.card{background:white;padding:28px;border-radius:15px;box-shadow:0 5px 20px #163c3c12}
+h1{font-size:26px;margin-top:0}
+p{color:#63787b;line-height:1.5}
+label{display:block;margin:15px 0 7px;font-weight:bold;font-size:14px}
+input,select,textarea{width:100%;padding:12px;border:1px solid #cbdcda;border-radius:8px;font-size:15px}
+button{margin-top:20px;padding:13px 18px;border:0;border-radius:8px;background:#147d78;color:white;font-weight:bold;cursor:pointer}
+button:hover{background:#0c625e}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.hidden{display:none}
+.notice{padding:15px;background:#e7f6f1;border-radius:9px;margin-top:18px}
+@media(max-width:600px){.grid{grid-template-columns:1fr}main{padding:15px}}
+</style>
+</head>
+<body>
+<header><h2>Unified Health ID</h2></header>
+
+<main>
+<a class="back-link" href="home.html">← Back to Home</a>
+
+<section class="card" id="officerSection">
+<h1>Government Officer Verification</h1>
+<p>Verify your officer account to register a patient.</p>
+<form id="officerForm">
+<label for="officerId">Officer ID</label>
+<input id="officerId" required autocomplete="username">
+
+<label for="officerCode">Verification Code</label>
+<input id="officerCode" type="password" required autocomplete="current-password">
+
+<button type="submit">Verify Officer</button>
+<p id="officerMessage" role="status"></p>
+</form>
+</section>
+
+<section class="card hidden" id="registrationSection">
+<h1>Register a Patient</h1>
+<p>Enter the patient's details. The system will assign a five-digit numeric ID automatically.</p>
+
+<form id="patientForm">
+<label for="fullName">Patient Full Name</label>
+<input id="fullName" required>
+
+<div class="grid">
+<div>
+<label for="age">Age</label>
+<input id="age" type="number" min="0" max="120" required>
+</div>
+<div>
+<label for="gender">Gender</label>
+<select id="gender" required>
+<option value="">Select</option>
+<option>Female</option><option>Male</option><option>Other</option>
+</select>
+</div>
+</div>
+
+<div class="grid">
+<div>
+<label for="bloodGroup">Blood Group</label>
+<select id="bloodGroup" required>
+<option value="">Select</option>
+<option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+<option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+<option>Unknown</option>
+</select>
+</div>
+<div>
+<label for="phone">Phone Number</label>
+<input id="phone" type="tel" required inputmode="numeric" placeholder="Patient or parent's number">
+</div>
+</div>
+
+<label for="address">Address</label>
+<textarea id="address" rows="2" required></textarea>
+
+<label for="emergency">Emergency Contact</label>
+<input id="emergency" type="tel" required inputmode="numeric">
+
+<label for="allergies">Known Allergies (enter None if not known)</label>
+<input id="allergies" required>
+
+<button type="submit">Register Patient</button>
+</form>
+
+<div id="successMessage" class="notice hidden" role="status"></div>
+<button id="newPatientButton" class="hidden" type="button">Register Another Patient</button>
+</section>
+</main>
+
+<script src="data.js"></script>
+<script>
+const officerForm = document.getElementById("officerForm");
+const registrationSection = document.getElementById("registrationSection");
+const patientForm = document.getElementById("patientForm");
+const successMessage = document.getElementById("successMessage");
+const newPatientButton = document.getElementById("newPatientButton");
+
+officerForm.addEventListener("submit", function(event){
+  event.preventDefault();
+
+  const id = document.getElementById("officerId").value.trim();
+  const code = document.getElementById("officerCode").value;
+
+  if(id === "GOV001" && code === "DEMO123"){
+    document.getElementById("officerSection").classList.add("hidden");
+    registrationSection.classList.remove("hidden");
+  }else{
+    document.getElementById("officerMessage").textContent =
+      "Verification failed. Please check your details.";
+  }
+});
+
+function generatePatientId(db){
+  const ids = Object.keys(db.patients)
+    .map(id => Number(id))
+    .filter(id => Number.isInteger(id) && id >= 10000 && id <= 99999);
+
+  let nextId = ids.length ? Math.max(...ids) + 1 : 10001;
+
+  while(db.patients[String(nextId)] && nextId <= 99999){
+    nextId++;
+  }
+
+  if(nextId > 99999){
+    throw new Error("No more five-digit patient IDs are available.");
+  }
+
+  return String(nextId);
+}
+
+patientForm.addEventListener("submit", function(event){
+  event.preventDefault();
+
+  const db = loadDB();
+
+  try{
+    const id = generatePatientId(db);
+    const patient = {
+      id: id,
+      fullName: document.getElementById("fullName").value.trim(),
+      age: Number(document.getElementById("age").value),
+      gender: document.getElementById("gender").value,
+      bloodGroup: document.getElementById("bloodGroup").value,
+      contact: document.getElementById("phone").value.trim(),
+      address: document.getElementById("address").value.trim(),
+      emergency: document.getElementById("emergency").value.trim(),
+      allergies: document.getElementById("allergies").value.trim(),
+      prescriptions: [],
+      reports: []
+    };
+
+    db.patients[id] = patient;
+    saveDB(db);
+
+    successMessage.innerHTML =
+      "<strong>Patient registered successfully!</strong><br>" +
+      "Patient Name: " + escapeHTML(patient.fullName) + "<br>" +
+      "Assigned Patient ID: <strong>" + id + "</strong><br>" +
+      "This five-digit ID can be used to find the patient in the doctor and patient pages.";
+
+    successMessage.classList.remove("hidden");
+    patientForm.classList.add("hidden");
+    newPatientButton.classList.remove("hidden");
+  }catch(error){
+    alert(error.message || "Registration failed. Please try again.");
+  }
+});
+
+newPatientButton.addEventListener("click", function(){
+  patientForm.reset();
+  patientForm.classList.remove("hidden");
+  successMessage.classList.add("hidden");
+  newPatientButton.classList.add("hidden");
+});
+</script>
+</body>
+</html>

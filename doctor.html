@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doctor Portal | Unified Health ID</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f2f9f8;color:#203a40}
+header{background:white;padding:20px 7%;border-bottom:1px solid #dce9e7}
+header h2{margin:0;color:#147d78}
+main{max-width:900px;margin:30px auto;padding:18px}
+.back-link{display:inline-block;margin-bottom:15px;color:#147d78;font-weight:bold;font-size:14px;text-decoration:none}
+.back-link:hover{text-decoration:underline}
+.card{background:white;padding:25px;border-radius:14px;margin-bottom:20px;box-shadow:0 5px 20px #163c3c10}
+h1{margin-top:0;font-size:26px}
+label{display:block;font-weight:bold;font-size:14px;margin:14px 0 7px}
+input,textarea{width:100%;padding:12px;border:1px solid #cbdcda;border-radius:8px;font-size:15px}
+button{background:#147d78;color:white;border:0;border-radius:8px;padding:12px 16px;margin-top:15px;cursor:pointer;font-weight:bold}
+button:hover{background:#0c625e}
+.hidden{display:none}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.info{background:#eaf6f3;padding:15px;border-radius:9px;line-height:1.8}
+.record{border:1px solid #dce9e7;border-radius:9px;padding:14px;margin-top:12px}
+small{color:#63787b}
+@media(max-width:600px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><h2>Unified Health ID — Doctor Portal</h2></header>
+
+<main>
+<a class="back-link" href="home.html">← Back to Home</a>
+
+<section class="card" id="loginSection">
+<h1>Doctor Verification</h1>
+<p>Verify your medical licence details to open the doctor portal.</p>
+<form id="loginForm">
+<label for="licence">Medical Licence ID</label>
+<input id="licence" required>
+<label for="doctorCode">Verification Code</label>
+<input id="doctorCode" type="password" required>
+<button type="submit">Verify Doctor</button>
+<p id="loginMessage" role="status"></p>
+</form>
+</section>
+
+<section class="card hidden" id="workspace">
+<h1>Doctor Workspace</h1>
+<p>Search for a registered patient using their five-digit ID.</p>
+<form id="searchForm">
+<label for="patientId">Patient ID</label>
+<input id="patientId" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" placeholder="Enter five-digit ID" required>
+<button type="submit">Find Patient</button>
+</form>
+<p id="searchMessage" role="status"></p>
+
+<div id="patientArea" class="hidden">
+<div class="info" id="patientDetails"></div>
+
+<section class="card" style="padding:0;margin-top:22px;box-shadow:none">
+<h2>Previous Prescriptions</h2>
+<div id="prescriptionList"></div>
+</section>
+
+<section class="card" style="padding:0;margin-top:22px;box-shadow:none">
+<h2>Lab Reports</h2>
+<div id="reportList"></div>
+</section>
+
+<section class="card" style="padding:0;margin-top:22px;box-shadow:none">
+<h2>Write New Prescription</h2>
+<form id="prescriptionForm">
+<label for="diagnosis">Diagnosis / Health Problem</label>
+<input id="diagnosis" required>
+
+<label>Medicines</label>
+<div class="rx-table-wrap">
+<table class="rx-table rx-edit">
+<thead>
+<tr>
+<th>#</th><th>Medicine Name</th><th>Dose</th><th>Frequency</th>
+<th>Duration</th><th>Instructions</th><th></th>
+</tr>
+</thead>
+<tbody id="medicineRows"></tbody>
+</table>
+</div>
+<button type="button" id="addRowButton" class="rx-add">+ Add Medicine</button>
+
+<label for="advice">Doctor's Advice</label>
+<textarea id="advice" rows="3"></textarea>
+
+<button type="submit">Save Prescription</button>
+</form>
+</section>
+</div>
+</section>
+</main>
+
+<script src="data.js"></script>
+<script>
+let selectedPatientId = "";
+
+document.getElementById("loginForm").addEventListener("submit",function(event){
+  event.preventDefault();
+  const licence = document.getElementById("licence").value.trim();
+  const code = document.getElementById("doctorCode").value;
+
+  if(licence === "MED-DOC-001" && code === "DOC123"){
+    document.getElementById("loginSection").classList.add("hidden");
+    document.getElementById("workspace").classList.remove("hidden");
+  }else{
+    document.getElementById("loginMessage").textContent =
+      "Verification failed. Please check your details.";
+  }
+});
+
+document.getElementById("searchForm").addEventListener("submit",function(event){
+  event.preventDefault();
+  const id = document.getElementById("patientId").value.trim();
+  const db = loadDB();
+  const patient = db.patients[id];
+
+  if(!/^[0-9]{5}$/.test(id)){
+    document.getElementById("searchMessage").textContent =
+      "Please enter exactly five digits.";
+    document.getElementById("patientArea").classList.add("hidden");
+    return;
+  }
+
+  if(!patient){
+    document.getElementById("searchMessage").textContent =
+      "Patient not found. Check the ID or register the patient first.";
+    document.getElementById("patientArea").classList.add("hidden");
+    return;
+  }
+
+  selectedPatientId = id;
+  document.getElementById("searchMessage").textContent = "Patient found.";
+  document.getElementById("patientArea").classList.remove("hidden");
+
+  document.getElementById("patientDetails").innerHTML =
+    "<strong>Patient Name:</strong> " + escapeHTML(patient.fullName) + "<br>" +
+    "<strong>Patient ID:</strong> " + escapeHTML(patient.id) + "<br>" +
+    "<strong>Age:</strong> " + escapeHTML(patient.age) + "<br>" +
+    "<strong>Gender:</strong> " + escapeHTML(patient.gender) + "<br>" +
+    "<strong>Blood Group:</strong> " + escapeHTML(patient.bloodGroup) + "<br>" +
+    "<strong>Phone:</strong> " + escapeHTML(patient.contact) + "<br>" +
+    "<strong>Address:</strong> " + escapeHTML(patient.address) + "<br>" +
+    "<strong>Allergies:</strong> " + escapeHTML(patient.allergies);
+
+  renderRecords(patient);
+  resetMedicineRows();
+});
+
+function renderRecords(patient){
+  const prescriptions = patient.prescriptions || [];
+  const reports = patient.reports || [];
+
+  document.getElementById("prescriptionList").innerHTML =
+    prescriptions.length ? prescriptions.map(function(p, index){
+      return prescriptionHTML(p, patient, index);
+    }).join("") : "<p>No prescriptions saved yet.</p>";
+
+  document.getElementById("reportList").innerHTML =
+    reports.length ? reports.map(function(r){
+      return '<div class="record"><strong>' + escapeHTML(r.name || "Lab Report") +
+      '</strong><p>' + escapeHTML(r.date || "") + '</p><p>' +
+      escapeHTML(r.details || "") + '</p></div>';
+    }).join("") : "<p>No lab reports available.</p>";
+}
+
+// ---------- Medicine table in the "Write New Prescription" form ----------
+const medicineRows = document.getElementById("medicineRows");
+
+function numberRows(){
+  Array.prototype.forEach.call(medicineRows.children, function(tr, i){
+    tr.querySelector(".rx-no").textContent = i + 1;
+  });
+}
+
+function addMedicineRow(){
+  const options = '<option value="">Select</option>' +
+    FREQUENCY_OPTIONS.map(function(f){
+      return '<option>' + escapeHTML(f) + '</option>';
+    }).join("");
+
+  const tr = document.createElement("tr");
+  tr.innerHTML =
+    '<td class="rx-no"></td>' +
+    '<td><input class="m-name" placeholder="e.g. Paracetamol"></td>' +
+    '<td><input class="m-dose" placeholder="e.g. 500 mg"></td>' +
+    '<td><select class="m-freq">' + options + '</select></td>' +
+    '<td><input class="m-days" placeholder="e.g. 5 days"></td>' +
+    '<td><input class="m-notes" placeholder="e.g. After food"></td>' +
+    '<td><button type="button" class="remove-row" title="Remove this medicine">✕</button></td>';
+
+  medicineRows.appendChild(tr);
+  numberRows();
+}
+
+function resetMedicineRows(){
+  medicineRows.innerHTML = "";
+  addMedicineRow();
+  addMedicineRow();
+  addMedicineRow();
+}
+
+document.getElementById("addRowButton").addEventListener("click", addMedicineRow);
+
+medicineRows.addEventListener("click", function(event){
+  const button = event.target.closest(".remove-row");
+  if(!button) return;
+
+  const tr = button.closest("tr");
+  if(medicineRows.children.length > 1){
+    tr.remove();
+  }else{
+    tr.querySelectorAll("input").forEach(function(input){ input.value = ""; });
+    tr.querySelector("select").value = "";
+  }
+  numberRows();
+});
+
+resetMedicineRows();
+
+document.getElementById("prescriptionForm").addEventListener("submit",function(event){
+  event.preventDefault();
+  if(!selectedPatientId) return;
+
+  const items = [];
+  Array.prototype.forEach.call(medicineRows.children, function(tr){
+    const name = tr.querySelector(".m-name").value.trim();
+    if(!name) return;
+    items.push({
+      name: name,
+      dose: tr.querySelector(".m-dose").value.trim(),
+      frequency: tr.querySelector(".m-freq").value,
+      duration: tr.querySelector(".m-days").value.trim(),
+      notes: tr.querySelector(".m-notes").value.trim()
+    });
+  });
+
+  if(items.length === 0){
+    alert("Please enter at least one medicine name.");
+    return;
+  }
+
+  const db = loadDB();
+  const patient = db.patients[selectedPatientId];
+  if(!patient){
+    alert("Patient record could not be found.");
+    return;
+  }
+
+  if(!patient.prescriptions) patient.prescriptions = [];
+  patient.prescriptions.push({
+    date:new Date().toLocaleDateString("en-GB"),
+    diagnosis:document.getElementById("diagnosis").value.trim(),
+    items:items,
+    medicines:itemsToText(items),
+    advice:document.getElementById("advice").value.trim()
+  });
+
+  saveDB(db);
+  renderRecords(patient);
+  document.getElementById("prescriptionForm").reset();
+  resetMedicineRows();
+  alert("Prescription saved successfully.");
+});
+</script>
+</body>
+</html>
